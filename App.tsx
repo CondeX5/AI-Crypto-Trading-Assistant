@@ -81,8 +81,9 @@ const App: React.FC = () => {
              const symbolClean = config.symbol.toUpperCase();
              
              // Fetch OHLCV via CCXT
-             // fetchOHLCV(symbol, timeframe, since, limit)
-             const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100);
+             // fetchOHLCV(symbol, timeframe, since, limit, params)
+             // ADICIONADO { category: 'linear' } para forçar futuros na Bybit V5 e evitar erro de Spot
+             const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100, { category: 'linear' });
              
              if (!ohlcv || ohlcv.length === 0) {
                throw new Error(`Sem dados para ${tf}`);
