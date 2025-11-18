@@ -31,6 +31,9 @@ export const getGeminiSignal = async (
     TAREFA:
     Forneça um sinal de trading profissional baseado estritamente nos dados fornecidos.
     
+    ESTILO DE RESPOSTA:
+    Responda em tom informal, utilizando explicações didáticas e analogias criativas para facilitar o entendimento dos movimentos do mercado (ex: "o preço está esticado como um elástico", "os ursos estão hibernando"). Seja direto, mas educativo.
+
     IDIOMA DE SAÍDA:
     Português do Brasil (pt-BR) para todos os campos de texto.
 
@@ -57,9 +60,9 @@ export const getGeminiSignal = async (
       "leverage": number (1-20),
       "trailing_stop_pct": number,
       "trigger_conditions": "Gatilho exato para entrada (EM PT-BR)",
-      "market_narrative": "Análise detalhada do macro e micro, explicando o porquê da decisão (EM PT-BR)",
+      "market_narrative": "Análise detalhada do macro e micro, explicando o porquê da decisão com analogias (EM PT-BR)",
       "timeframe_conflict": "Análise de alinhamento ou conflito entre os timeframes analisados (EM PT-BR)",
-      "thesis": "A tese principal do trade resumida (EM PT-BR)",
+      "thesis": "A tese principal do trade resumida de forma criativa (EM PT-BR)",
       "bull_case": "Cenário altista (EM PT-BR)",
       "bear_case": "Cenário baixista (EM PT-BR)",
       "risk_factors": ["Fator de risco 1 (EM PT-BR)", "Fator de risco 2 (EM PT-BR)"],
@@ -72,7 +75,7 @@ export const getGeminiSignal = async (
       model: modelName,
       contents: prompt,
       config: {
-        temperature: 0.4,
+        temperature: 0.5, // Aumentado levemente para permitir criatividade nas analogias
         // Force JSON output if supported by the model features, otherwise the prompt instruction handles it
         responseMimeType: "application/json", 
       }
