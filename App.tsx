@@ -48,15 +48,17 @@ const App: React.FC = () => {
           throw new Error("Erro de carregamento da biblioteca CCXT. Recarregue a página.");
         }
 
+        // Configuração corrigida conforme instrução (Sem Proxy, Swap explícito no símbolo)
         exchange = new ccxt.bybit({
-          // Proxy CORS para evitar bloqueio de navegador
-          proxy: 'https://corsproxy.io/?', 
           enableRateLimit: true,
           options: {
-            defaultType: 'swap', // Define explicitamente para Swap (Perpétuos)
-            defaultSubType: 'linear', // Define contratos lineares (USDT)
+            defaultType: 'swap',
+            recvWindow: 10000,
           },
         });
+        
+        // Reforço da opção
+        exchange.options['defaultType'] = 'swap';
       }
 
       for (const tf of timeframes) {
@@ -78,12 +80,17 @@ const App: React.FC = () => {
                '1d': '1d' 
              };
 
-             const symbolClean = config.symbol.toUpperCase();
+             // Ajuste crítico: Formato Unified do CCXT para Perpétuos Lineares (Symbol/Quote:Settle)
+             // Transforma BTC/USDT em BTC/USDT:USDT
+             let symbolClean = config.symbol.toUpperCase().trim();
+             if (!symbolClean.includes(':')) {
+                // Se o usuário digitou apenas BTC/USDT, adicionamos o sufixo :USDT
+                symbolClean = `${symbolClean}:USDT`;
+             }
              
              // Fetch OHLCV via CCXT
-             // fetchOHLCV(symbol, timeframe, since, limit, params)
-             // ADICIONADO { category: 'linear' } para forçar futuros na Bybit V5 e evitar erro de Spot
-             const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100, { category: 'linear' });
+             // Removido o parâmetro extra { category: 'linear' } pois o símbolo :USDT já define isso
+             const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100);
              
              if (!ohlcv || ohlcv.length === 0) {
                throw new Error(`Sem dados para ${tf}`);
@@ -103,7 +110,12 @@ const App: React.FC = () => {
 
            } catch (e: any) {
              console.error(e);
-             throw new Error(`Erro ao buscar dados na Bybit (${tf}): ${e.message || 'Verifique o símbolo (ex: BTC/USDT) ou tente o Modo Demo.'}`);
+             // Mensagem de erro amigável
+             let msg = e.message || 'Erro desconhecido';
+             if (msg.includes('fetch failed')) {
+               msg = 'Bloqueio de Rede/CORS. A Bybit pode estar bloqueando requisições diretas do navegador neste momento ou região.';
+             }
+             throw new Error(`Erro Bybit (${tf}): ${msg}. Tente o 'Modo Demo' se persistir.`);
            }
         }
 
