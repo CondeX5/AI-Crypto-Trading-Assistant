@@ -49,11 +49,12 @@ const App: React.FC = () => {
         }
 
         exchange = new ccxt.bybit({
-          // Importante: Proxy para evitar CORS no navegador
+          // Proxy CORS para evitar bloqueio de navegador
           proxy: 'https://corsproxy.io/?', 
           enableRateLimit: true,
           options: {
-            defaultType: 'swap', // Garante acesso a futuros perpétuos (onde a maioria do volume está)
+            defaultType: 'swap', // Define explicitamente para Swap (Perpétuos)
+            defaultSubType: 'linear', // Define contratos lineares (USDT)
           },
         });
       }
@@ -101,7 +102,7 @@ const App: React.FC = () => {
 
            } catch (e: any) {
              console.error(e);
-             throw new Error(`Erro ao buscar dados na Bybit (${tf}): ${e.message || 'Verifique o símbolo ou proxy'}`);
+             throw new Error(`Erro ao buscar dados na Bybit (${tf}): ${e.message || 'Verifique o símbolo (ex: BTC/USDT) ou tente o Modo Demo.'}`);
            }
         }
 
