@@ -22,37 +22,37 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
   };
 
   const copyToClipboard = () => {
-    const text = `AI SIGNAL: ${data.verdict} @ ${data.entry}\nSL: ${data.sl} | TP1: ${data.tp1} | TP2: ${data.tp2} | TP3: ${data.tp3}\nThesis: ${data.thesis}`;
+    const text = `SINAL IA: ${data.verdict} @ ${data.entry}\nSL: ${data.sl} | TP1: ${data.tp1} | TP2: ${data.tp2} | TP3: ${data.tp3}\nTese: ${data.thesis}`;
     navigator.clipboard.writeText(text);
-    alert("Signal copied to clipboard!");
+    alert("Sinal copiado para a área de transferência!");
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Section */}
+      {/* Cabeçalho */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Verdict Card */}
+        {/* Veredito Card */}
         <div className={`col-span-2 bg-dark-800 border-2 rounded-xl p-6 flex flex-col justify-between relative ${getVerdictColor(data.verdict)} bg-opacity-50`}>
            <div className="absolute top-4 right-4">
-              <button onClick={copyToClipboard} className="p-2 hover:bg-dark-700 rounded-full transition text-gray-400">
+              <button onClick={copyToClipboard} className="p-2 hover:bg-dark-700 rounded-full transition text-gray-400" title="Copiar Sinal">
                  <Copy className="w-5 h-5" />
               </button>
            </div>
            
            <div>
-             <span className="text-sm font-bold tracking-widest uppercase text-gray-400">AI Verdict</span>
+             <span className="text-sm font-bold tracking-widest uppercase text-gray-400">Veredito da IA</span>
              <h2 className="text-5xl font-black mt-2 flex items-center gap-4">
                 {data.verdict === SignalVerdict.LONG && <TrendingUp className="w-12 h-12" />}
                 {data.verdict === SignalVerdict.SHORT && <TrendingDown className="w-12 h-12" />}
                 {(data.verdict === SignalVerdict.NEUTRAL || data.verdict === SignalVerdict.LATERAL) && <Minus className="w-12 h-12" />}
                 {data.verdict}
              </h2>
-             <p className="text-lg mt-2 opacity-80 font-mono">{data.mode.toUpperCase()} STRATEGY • {data.leverage}x LEVERAGE</p>
+             <p className="text-lg mt-2 opacity-80 font-mono">{data.mode.toUpperCase()} STRATEGY • {data.leverage}x ALAVANCAGEM</p>
            </div>
 
            <div className="mt-6">
              <div className="flex justify-between mb-1">
-               <span className="text-sm font-medium text-gray-400">AI Confidence Model</span>
+               <span className="text-sm font-medium text-gray-400">Confiança da IA</span>
                <span className="text-sm font-bold text-white">{data.confidence}%</span>
              </div>
              <div className="w-full bg-dark-900 rounded-full h-3">
@@ -61,10 +61,10 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
            </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Estatísticas Rápidas */}
         <div className="bg-dark-800 border border-dark-700 rounded-xl p-6 flex flex-col justify-center space-y-4">
            <div className="flex justify-between items-center border-b border-dark-700 pb-3">
-             <span className="text-gray-400 text-sm">Entry Zone</span>
+             <span className="text-gray-400 text-sm">Zona de Entrada</span>
              <span className="text-brand-cyan font-mono font-bold text-lg">${data.entry}</span>
            </div>
            <div className="flex justify-between items-center border-b border-dark-700 pb-3">
@@ -72,35 +72,35 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
              <span className="text-brand-red font-mono font-bold text-lg">${data.sl}</span>
            </div>
            <div className="flex justify-between items-center border-b border-dark-700 pb-3">
-             <span className="text-gray-400 text-sm">Target 1 (R:R {data.rr1})</span>
+             <span className="text-gray-400 text-sm">Alvo 1 (R:R {data.rr1})</span>
              <span className="text-brand-green font-mono font-bold text-lg">${data.tp1}</span>
            </div>
            <div className="flex justify-between items-center border-b border-dark-700 pb-3">
-             <span className="text-gray-400 text-sm">Target 2 (R:R {data.rr2})</span>
+             <span className="text-gray-400 text-sm">Alvo 2 (R:R {data.rr2})</span>
              <span className="text-brand-green font-mono font-bold text-lg">${data.tp2}</span>
            </div>
            <div className="flex justify-between items-center">
-             <span className="text-gray-400 text-sm">Target 3 (R:R {data.rr3})</span>
+             <span className="text-gray-400 text-sm">Alvo 3 (R:R {data.rr3})</span>
              <span className="text-brand-green font-mono font-bold text-lg">${data.tp3}</span>
            </div>
         </div>
       </div>
 
-      {/* Narrative Tabs */}
+      {/* Abas Narrativas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-dark-800 border border-dark-700 rounded-xl p-6">
            <h3 className="text-brand-gold font-bold text-lg mb-4 flex items-center gap-2">
-             <Target className="w-5 h-5" /> Trade Thesis
+             <Target className="w-5 h-5" /> Tese do Trade
            </h3>
            <p className="text-gray-300 leading-relaxed">{data.thesis}</p>
            
            <div className="mt-6 space-y-4">
              <div className="bg-dark-900 p-4 rounded-lg border-l-4 border-brand-green">
-               <h4 className="font-bold text-brand-green text-sm mb-1">Bull Case</h4>
+               <h4 className="font-bold text-brand-green text-sm mb-1">Cenário de Alta (Bull Case)</h4>
                <p className="text-xs text-gray-400">{data.bull_case}</p>
              </div>
              <div className="bg-dark-900 p-4 rounded-lg border-l-4 border-brand-red">
-               <h4 className="font-bold text-brand-red text-sm mb-1">Bear Case</h4>
+               <h4 className="font-bold text-brand-red text-sm mb-1">Cenário de Baixa (Bear Case)</h4>
                <p className="text-xs text-gray-400">{data.bear_case}</p>
              </div>
            </div>
@@ -109,7 +109,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
         <div className="space-y-6">
            <div className="bg-dark-800 border border-dark-700 rounded-xl p-6">
               <h3 className="text-brand-cyan font-bold text-lg mb-4 flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5" /> Risk Management
+                <ShieldAlert className="w-5 h-5" /> Gestão de Risco
               </h3>
               <ul className="space-y-2">
                 {data.risk_factors.map((risk, idx) => (
@@ -121,7 +121,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
               </ul>
               <div className="mt-4 pt-4 border-t border-dark-700 grid grid-cols-2 gap-4">
                  <div>
-                    <span className="text-xs text-gray-500 block">Pos Size</span>
+                    <span className="text-xs text-gray-500 block">Tamanho Posição</span>
                     <span className="font-mono text-brand-gold">{data.position_size.toFixed(4)}</span>
                  </div>
                  <div>
@@ -133,7 +133,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
 
            <div className="bg-dark-800 border border-dark-700 rounded-xl p-6">
               <h3 className="text-brand-green font-bold text-lg mb-4 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" /> Confluence/Strengths
+                <CheckCircle className="w-5 h-5" /> Forças / Confluências
               </h3>
               <ul className="space-y-2">
                 {data.strengths.map((str, idx) => (
@@ -147,9 +147,9 @@ export const SignalCard: React.FC<SignalCardProps> = ({ data }) => {
         </div>
       </div>
       
-      {/* Execution Plan */}
+      {/* Plano de Execução */}
       <div className="bg-dark-800 border border-dark-700 rounded-xl p-6">
-        <h3 className="text-white font-bold text-lg mb-2">Execution Trigger</h3>
+        <h3 className="text-white font-bold text-lg mb-2">Gatilho de Execução</h3>
         <div className="bg-dark-900 p-4 rounded font-mono text-brand-cyan text-sm border border-brand-cyan/20">
           {data.trigger_conditions}
         </div>
