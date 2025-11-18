@@ -5,6 +5,8 @@ import { AppConfig, MarketData, AISignalResponse, Timeframe } from './types';
 import { generateMockCandles, analyzeCandles } from './services/indicators';
 import { getGeminiSignal } from './services/geminiService';
 import { Terminal, Layers, FileJson, Menu } from 'lucide-react';
+// @ts-ignore
+import ccxt from 'ccxt';
 
 const INITIAL_CONFIG: AppConfig = {
   apiKey: '',
@@ -33,10 +35,20 @@ const App: React.FC = () => {
     setSignal(null);
 
     try {
-      // 1. Buscar Dados (Simulado ou Real)
+      // 1. Buscar Dados (Simulado ou Real via CCXT)
       const timeframes = config.selectedTimeframes;
       const mData: MarketData[] = [];
       const nowPrice = config.demoMode ? 65000 + Math.random() * 1000 : 0; 
+
+      // Instância da Bybit via CCXT (apenas se não for demo)
+      let exchange: any = null;
+      if (!config.demoMode) {
+        exchange = new ccxt.bybit({
+          // Importante: Proxy para evitar CORS no navegador
+          proxy: 'https://corsproxy.io/?', 
+          enableRateLimit: true,
+        });
+      }
 
       for (const tf of timeframes) {
         let candles;
@@ -46,9 +58,9 @@ const App: React.FC = () => {
            candles = generateMockCandles(200, nowPrice);
            currentPrice = candles[candles.length - 1].close;
         } else {
-           // Tentativa de fetch real na Binance Public API
            try {
-             const intervalMap: Record<string, string> = { 
+             // Mapeamento de Timeframes do App para CCXT
+             const tfMap: Record<string, string> = { 
                '5m': '5m',
                '15m': '15m', 
                '30m': '30m',
@@ -56,16 +68,32 @@ const App: React.FC = () => {
                '4h': '4h', 
                '1d': '1d' 
              };
-             const symbolClean = config.symbol.replace('/', '').toUpperCase();
-             const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbolClean}&interval=${intervalMap[tf]}&limit=100`);
-             if(!response.ok) throw new Error("Falha na resposta da rede");
-             const rawData = await response.json();
-             candles = rawData.map((d: any) => ({
-               time: d[0], open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]), volume: parseFloat(d[5])
+
+             const symbolClean = config.symbol.toUpperCase();
+             
+             // Fetch OHLCV via CCXT
+             // fetchOHLCV(symbol, timeframe, since, limit)
+             const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100);
+             
+             if (!ohlcv || ohlcv.length === 0) {
+               throw new Error(`Sem dados para ${tf}`);
+             }
+
+             // Formatar dados do CCXT [timestamp, open, high, low, close, volume] para objeto Candle
+             candles = ohlcv.map((d: number[]) => ({
+               time: d[0], 
+               open: d[1], 
+               high: d[2], 
+               low: d[3], 
+               close: d[4], 
+               volume: d[5]
              }));
+
              currentPrice = candles[candles.length-1].close;
-           } catch (e) {
-             throw new Error("Falha ao buscar dados reais (CORS/Rede). Ative o 'Modo Demo' nas configurações para testar a lógica da IA.");
+
+           } catch (e: any) {
+             console.error(e);
+             throw new Error(`Erro ao buscar dados na Bybit (${tf}): ${e.message || 'Verifique o símbolo ou proxy'}`);
            }
         }
 
@@ -111,8 +139,6 @@ const App: React.FC = () => {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      {/* Overlay para fechar sidebar em mobile/telas pequenas se desejar (opcional, mantendo simples por enquanto) */}
-      
       <main 
         className={`
           flex-1 p-8 overflow-y-auto h-screen transition-all duration-300 ease-in-out
@@ -192,8 +218,8 @@ const App: React.FC = () => {
                    <div className="absolute inset-0 border-4 border-dark-700 rounded-full"></div>
                    <div className="absolute inset-0 border-4 border-brand-cyan rounded-full border-t-transparent animate-spin"></div>
                 </div>
-                <h3 className="text-xl font-bold text-brand-cyan animate-pulse">Processando Dados de Mercado...</h3>
-                <p className="text-gray-500 text-sm mt-2">Calculando EMA, RSI, MACD & Consultando Gemini {config.model}</p>
+                <h3 className="text-xl font-bold text-brand-cyan animate-pulse">Processando Dados de Mercado (Bybit)...</h3>
+                <p className="text-gray-500 text-sm mt-2">Calculando Indicadores & Consultando Gemini {config.model}</p>
              </div>
           )}
 
