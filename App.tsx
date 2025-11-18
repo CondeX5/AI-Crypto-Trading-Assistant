@@ -5,8 +5,6 @@ import { AppConfig, MarketData, AISignalResponse, Timeframe } from './types';
 import { generateMockCandles, analyzeCandles } from './services/indicators';
 import { getGeminiSignal } from './services/geminiService';
 import { Terminal, Layers, FileJson, Menu } from 'lucide-react';
-// @ts-ignore
-import ccxt from 'ccxt';
 
 const INITIAL_CONFIG: AppConfig = {
   apiKey: '',
@@ -43,10 +41,20 @@ const App: React.FC = () => {
       // Instância da Bybit via CCXT (apenas se não for demo)
       let exchange: any = null;
       if (!config.demoMode) {
+        // Acessa o CCXT injetado via script tag global no index.html
+        const ccxt = (window as any).ccxt;
+        
+        if (!ccxt) {
+          throw new Error("Erro de carregamento da biblioteca CCXT. Recarregue a página.");
+        }
+
         exchange = new ccxt.bybit({
           // Importante: Proxy para evitar CORS no navegador
           proxy: 'https://corsproxy.io/?', 
           enableRateLimit: true,
+          options: {
+            defaultType: 'swap', // Garante acesso a futuros perpétuos (onde a maioria do volume está)
+          },
         });
       }
 
