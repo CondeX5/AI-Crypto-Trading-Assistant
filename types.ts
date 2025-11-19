@@ -90,5 +90,4 @@ export interface AppConfig {
   capital: number;
   risk: number;
   selectedTimeframes: string[];
-  demoMode: boolean;
 }

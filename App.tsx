@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { SignalCard } from './components/SignalCard';
 import { AppConfig, MarketData, AISignalResponse, Timeframe } from './types';
-import { generateMockCandles, analyzeCandles } from './services/indicators';
+import { analyzeCandles } from './services/indicators';
 import { getGeminiSignal } from './services/geminiService';
 import { Terminal, Layers, FileJson, Menu } from 'lucide-react';
 
@@ -12,8 +12,7 @@ const INITIAL_CONFIG: AppConfig = {
   symbol: 'BTC/USDT',
   capital: 1000,
   risk: 2.0,
-  selectedTimeframes: [Timeframe.H1, Timeframe.H4],
-  demoMode: true
+  selectedTimeframes: [Timeframe.H1, Timeframe.H4]
 };
 
 const App: React.FC = () => {
@@ -33,90 +32,79 @@ const App: React.FC = () => {
     setSignal(null);
 
     try {
-      // 1. Buscar Dados (Simulado ou Real via CCXT)
+      // 1. Buscar Dados (Real via CCXT)
       const timeframes = config.selectedTimeframes;
       const mData: MarketData[] = [];
-      const nowPrice = config.demoMode ? 65000 + Math.random() * 1000 : 0; 
 
-      // Instância da Bybit via CCXT (apenas se não for demo)
-      let exchange: any = null;
-      if (!config.demoMode) {
-        // Acessa o CCXT injetado via script tag global no index.html
-        const ccxt = (window as any).ccxt;
-        
-        if (!ccxt) {
-          throw new Error("Erro de carregamento da biblioteca CCXT. Recarregue a página.");
-        }
-
-        // Configuração corrigida conforme instrução (Sem Proxy, Swap explícito no símbolo)
-        exchange = new ccxt.bybit({
-          enableRateLimit: true,
-          options: {
-            defaultType: 'swap',
-            recvWindow: 10000,
-          },
-        });
-        
-        // Reforço da opção
-        exchange.options['defaultType'] = 'swap';
+      // Acessa o CCXT injetado via script tag global no index.html
+      const ccxt = (window as any).ccxt;
+      
+      if (!ccxt) {
+        throw new Error("Erro de carregamento da biblioteca CCXT. Recarregue a página.");
       }
+
+      // Configuração corrigida conforme instrução (Sem Proxy, Swap explícito no símbolo)
+      const exchange = new ccxt.bybit({
+        enableRateLimit: true,
+        options: {
+          defaultType: 'swap',
+          recvWindow: 10000,
+        },
+      });
+      
+      // Reforço da opção
+      exchange.options['defaultType'] = 'swap';
 
       for (const tf of timeframes) {
         let candles;
         let currentPrice;
 
-        if (config.demoMode) {
-           candles = generateMockCandles(200, nowPrice);
-           currentPrice = candles[candles.length - 1].close;
-        } else {
-           try {
-             // Mapeamento de Timeframes do App para CCXT
-             const tfMap: Record<string, string> = { 
-               '5m': '5m',
-               '15m': '15m', 
-               '30m': '30m',
-               '1h': '1h', 
-               '4h': '4h', 
-               '1d': '1d' 
-             };
+        try {
+           // Mapeamento de Timeframes do App para CCXT
+           const tfMap: Record<string, string> = { 
+             '5m': '5m',
+             '15m': '15m', 
+             '30m': '30m',
+             '1h': '1h', 
+             '4h': '4h', 
+             '1d': '1d' 
+           };
 
-             // Ajuste crítico: Formato Unified do CCXT para Perpétuos Lineares (Symbol/Quote:Settle)
-             // Transforma BTC/USDT em BTC/USDT:USDT
-             let symbolClean = config.symbol.toUpperCase().trim();
-             if (!symbolClean.includes(':')) {
-                // Se o usuário digitou apenas BTC/USDT, adicionamos o sufixo :USDT
-                symbolClean = `${symbolClean}:USDT`;
-             }
-             
-             // Fetch OHLCV via CCXT
-             // Removido o parâmetro extra { category: 'linear' } pois o símbolo :USDT já define isso
-             const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100);
-             
-             if (!ohlcv || ohlcv.length === 0) {
-               throw new Error(`Sem dados para ${tf}`);
-             }
-
-             // Formatar dados do CCXT [timestamp, open, high, low, close, volume] para objeto Candle
-             candles = ohlcv.map((d: number[]) => ({
-               time: d[0], 
-               open: d[1], 
-               high: d[2], 
-               low: d[3], 
-               close: d[4], 
-               volume: d[5]
-             }));
-
-             currentPrice = candles[candles.length-1].close;
-
-           } catch (e: any) {
-             console.error(e);
-             // Mensagem de erro amigável
-             let msg = e.message || 'Erro desconhecido';
-             if (msg.includes('fetch failed')) {
-               msg = 'Bloqueio de Rede/CORS. A Bybit pode estar bloqueando requisições diretas do navegador neste momento ou região.';
-             }
-             throw new Error(`Erro Bybit (${tf}): ${msg}. Tente o 'Modo Demo' se persistir.`);
+           // Ajuste crítico: Formato Unified do CCXT para Perpétuos Lineares (Symbol/Quote:Settle)
+           // Transforma BTC/USDT em BTC/USDT:USDT
+           let symbolClean = config.symbol.toUpperCase().trim();
+           if (!symbolClean.includes(':')) {
+              // Se o usuário digitou apenas BTC/USDT, adicionamos o sufixo :USDT
+              symbolClean = `${symbolClean}:USDT`;
            }
+           
+           // Fetch OHLCV via CCXT
+           const ohlcv = await exchange.fetchOHLCV(symbolClean, tfMap[tf], undefined, 100);
+           
+           if (!ohlcv || ohlcv.length === 0) {
+             throw new Error(`Sem dados para ${tf}`);
+           }
+
+           // Formatar dados do CCXT [timestamp, open, high, low, close, volume] para objeto Candle
+           candles = ohlcv.map((d: number[]) => ({
+             time: d[0], 
+             open: d[1], 
+             high: d[2], 
+             low: d[3], 
+             close: d[4], 
+             volume: d[5]
+           }));
+
+           currentPrice = candles[candles.length-1].close;
+
+        } catch (e: any) {
+           console.error(e);
+           // Mensagem de erro amigável
+           let msg = e.message || 'Erro desconhecido';
+           if (msg.includes('fetch failed')) {
+             msg = 'Bloqueio de Rede/CORS. A Bybit pode estar bloqueando requisições diretas do navegador neste momento ou região.';
+           }
+           throw new Error(`Erro Bybit (${tf}): ${msg}`);
         }
 
         const indicators = analyzeCandles(candles);

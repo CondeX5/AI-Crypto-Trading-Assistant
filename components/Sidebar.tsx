@@ -126,19 +126,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onAnalyze, 
                   {availableModels.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
-
-               <div className="flex items-center gap-2 mt-4">
-                <input 
-                  type="checkbox" 
-                  id="demoMode" 
-                  checked={config.demoMode} 
-                  onChange={(e) => setConfig({...config, demoMode: e.target.checked})}
-                  className="rounded bg-dark-900 border-dark-600 text-brand-cyan focus:ring-0"
-                />
-                <label htmlFor="demoMode" className="text-xs text-gray-400 select-none cursor-pointer">
-                  Modo Demo (Dados Simulados)
-                </label>
-              </div>
             </div>
           )}
         </div>
@@ -252,12 +239,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, onAnalyze, 
                     Clique em <span className="text-brand-cyan font-bold">ANALISAR COM IA</span>.
                   </li>
                 </ol>
-              </div>
-
-              <div className="p-2 bg-dark-800 rounded border border-dark-600 mt-2">
-                <p className="text-[10px] text-gray-500">
-                  Nota: Ative o "Modo Demo" para testar a lógica da IA com dados simulados caso não tenha conexão direta com a exchange.
-                </p>
               </div>
             </div>
           )}

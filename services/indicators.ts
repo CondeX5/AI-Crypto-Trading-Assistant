@@ -96,7 +96,6 @@ const calculateATR = (candles: Candle[], period: number = 14): number => {
 
 export const analyzeCandles = (candles: Candle[]): TechnicalIndicators => {
   const closes = getCloses(candles);
-  const lastClose = closes[closes.length - 1];
   
   // EMAs
   const ema9Arr = calculateEMA(closes, 9);
@@ -119,33 +118,4 @@ export const analyzeCandles = (candles: Candle[]): TechnicalIndicators => {
     bollinger,
     atr: calculateATR(candles)
   };
-};
-
-// Mock Data Generator for Demo Mode
-export const generateMockCandles = (count: number = 100, startPrice: number = 50000): Candle[] => {
-  const candles: Candle[] = [];
-  let currentPrice = startPrice;
-  let time = Date.now() - (count * 3600 * 1000); // Hourly back
-  
-  for (let i = 0; i < count; i++) {
-    const volatility = currentPrice * 0.02;
-    const change = (Math.random() - 0.5) * volatility;
-    const open = currentPrice;
-    const close = currentPrice + change;
-    const high = Math.max(open, close) + Math.random() * volatility * 0.5;
-    const low = Math.min(open, close) - Math.random() * volatility * 0.5;
-    
-    candles.push({
-      time,
-      open,
-      high,
-      low,
-      close,
-      volume: Math.random() * 1000
-    });
-    
-    currentPrice = close;
-    time += 3600 * 1000;
-  }
-  return candles;
 };
